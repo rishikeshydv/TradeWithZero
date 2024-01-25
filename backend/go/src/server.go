@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+
 	"github.com/gorilla/mux"
 )
 
@@ -21,12 +22,12 @@ type Order struct {
 	quantity int
 }
 
-type Request struct {
-	side     string
-	price    int
+type TypeAndQty struct {
+	_type    string
 	quantity int
-	userId   string
 }
+
+type Aggregate map[int]TypeAndQty
 
 var Symbol = "GOOGLE"
 
@@ -102,6 +103,37 @@ func main() {
 
 	// now we define /depth route
 	http.HandleFunc("/depth", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		aggregateList := make(map[int]TypeAndQty)
+
+		for i := 0; i < len(bids); i++ {
+			agg, err := aggregateList[bids[i].price]
+			if !err {
+				aggregateList[bids[i].price] = TypeAndQty{
+					_type:    "bid",
+					quantity: bids[i].quantity,
+				}
+			} else {
+				agg.quantity += bids[i].quantity
+				aggregateList[bids[i].price] = agg
+
+			}
+		}
+
+		for i := 0; i < len(asks); i++ {
+			agg, err := aggregateList[asks[i].price]
+			if !err {
+				aggregateList[asks[i].price] = TypeAndQty{
+					_type:    "sell",
+					quantity: asks[i].quantity,
+				}
+			} else {
+				agg.quantity += asks[i].quantity
+				aggregateList[asks[i].price] = agg
+
+			}
+		}
+		fmt.Fprintf(w, "Depth : %q", aggregateList)
 	})
 
 	http.HandleFunc("/balance/{userId}", GetBalanceHandler)
