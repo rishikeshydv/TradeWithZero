@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"github.com/gorilla/mux"
 )
 
 type Balances map[string]int
@@ -31,6 +32,22 @@ var Symbol = "GOOGLE"
 
 var bids = []Order{}
 var asks = []Order{}
+
+var users = []User{
+	{id: "1",
+		balances: Balances{
+			"GOOGLE": 10,
+			"USD":    500,
+		},
+	},
+	{
+		id: "2",
+		balances: Balances{
+			"GOOGLE": 20,
+			"USD":    1000,
+		},
+	},
+}
 
 func main() {
 
@@ -84,12 +101,35 @@ func main() {
 	})
 
 	// now we define /depth route
-	http.HandleFunc("/depth",func(w http.ResponseWriter, r *http.Request) {
-		
+	http.HandleFunc("/depth", func(w http.ResponseWriter, r *http.Request) {
 	})
 
+	http.HandleFunc("/balance/{userId}", GetBalanceHandler)
+
+	http.HandleFunc("/quote", func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Assignment
+	})
 
 	http.ListenAndServe(":8080", nil)
+}
+
+// we will be using this function to extract userId from the URL
+func GetBalanceHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract userId from the request path parameters
+	vars := mux.Vars(r)
+	userId := vars["userId"]
+
+	for _, user := range users {
+		if user.id == userId {
+			// Set the json response content type
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, "User Balance = %q", user.balances)
+			return
+		} else {
+			fmt.Println("User Not Found!")
+		}
+	}
+
 }
 
 // this function updates the user stocks & bank balance
@@ -114,21 +154,6 @@ func UserUpdate(user1Id string, user2Id string, price int, quantity int, users [
 
 // this function fills the bid or sell orders
 func FillOrders(side string, price int, quantity int, userId string) int {
-	users := []User{
-		{id: "1",
-			balances: Balances{
-				"GOOGLE": 10,
-				"USD":    500,
-			},
-		},
-		{
-			id: "2",
-			balances: Balances{
-				"GOOGLE": 20,
-				"USD":    1000,
-			},
-		},
-	}
 
 	remainingQty := quantity
 	if side == "bid" {
