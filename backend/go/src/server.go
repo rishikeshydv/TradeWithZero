@@ -16,26 +16,9 @@ type Order struct {
 var Symbol = "GOOGLE"
 
 func main() {
-	bids := []Order{}
-	asks := []Order{}
-
-	users := []User{
-		{id: "1",
-			balances: Balances{
-				"GOOGLE": 10,
-				"USD":    500,
-			},
-		},
-		{
-			id: "2",
-			balances: Balances{
-				"GOOGLE": 20,
-				"USD":    1000,
-			},
-		},
-	}
 }
 
+// this function updates the user stocks & bank balance
 func UserUpdate(user1Id string, user2Id string, price int, quantity int, users []User) {
 	var firstUser *User
 	var secondUser *User
@@ -55,6 +38,61 @@ func UserUpdate(user1Id string, user2Id string, price int, quantity int, users [
 	secondUser.balances["USD"] -= quantity * price
 }
 
-func FillOrders() {
+// this function fills the bid or sell orders
+func FillOrders(side string, price int, quantity int, userId string) int {
 
+	bids := []Order{}
+	asks := []Order{}
+
+	users := []User{
+		{id: "1",
+			balances: Balances{
+				"GOOGLE": 10,
+				"USD":    500,
+			},
+		},
+		{
+			id: "2",
+			balances: Balances{
+				"GOOGLE": 20,
+				"USD":    1000,
+			},
+		},
+	}
+
+	remainingQty := quantity
+	if side == "bid" {
+		for i := len(asks) - 1; i >= 0; i-- {
+			if asks[i].price > price {
+				continue
+			}
+
+			if asks[i].quantity > remainingQty {
+				asks[i].quantity -= remainingQty
+				UserUpdate(asks[i].userId, userId, asks[i].price, remainingQty, users)
+				return 0
+			} else {
+				remainingQty -= asks[i].quantity
+				UserUpdate(asks[i].userId, userId, asks[i].price, asks[i].quantity, users)
+				asks = asks[:len(asks)-1]
+			}
+		}
+	} else {
+		for i := len(bids) - 1; i >= 0; i-- {
+			if bids[i].price < price {
+				continue
+			}
+
+			if bids[i].quantity > remainingQty {
+				bids[i].quantity -= remainingQty
+				UserUpdate(userId, bids[i].userId, price, remainingQty, users)
+				return 0
+			} else {
+				remainingQty -= bids[i].quantity
+				UserUpdate(userId, bids[i].userId, bids[i].quantity, users)
+				bids = bids[:len(asks)-1]
+			}
+		}
+	}
+	return remainingQty
 }
