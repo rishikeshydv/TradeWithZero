@@ -1,5 +1,12 @@
 package main
 
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"sort"
+)
+
 type Balances map[string]int
 
 type User struct {
@@ -13,9 +20,76 @@ type Order struct {
 	quantity int
 }
 
+type Request struct {
+	side     string
+	price    int
+	quantity int
+	userId   string
+}
+
 var Symbol = "GOOGLE"
 
+var bids = []Order{}
+var asks = []Order{}
+
 func main() {
+
+	// Place a limit order
+	http.HandleFunc("/order", func(w http.ResponseWriter, r *http.Request) {
+		//set your content-type header so clients know to expect json
+		//w.Header().Set("Content-Type", "application/json")
+
+		var ordReq Request
+		err := json.NewDecoder(r.Body).Decode(&ordReq)
+		if err != nil {
+			http.Error(w, "Invalid JSON request", http.StatusBadRequest)
+			return
+		}
+		side := ordReq.side
+		price := ordReq.price
+		quantity := ordReq.quantity
+		userId := ordReq.userId
+
+		remainingQty := FillOrders(side, price, quantity, userId)
+
+		if remainingQty == 0 {
+			//data := { filledQuantity: quantity }
+			//json.NewEncoder(w).Encode(data)
+			fmt.Fprintf(w, "{ filledQuantity: %q }", quantity)
+			return
+		}
+
+		if side == "bid" {
+			bids = append(bids, []Order{
+				userId:   userId,
+				price:    price,
+				quantity: remainingQty})
+
+			sort.Slice(bids, func(i, j int) bool {
+				return bids[i].price < bids[j].price
+			})
+		} else {
+			asks = append(asks, []Order{
+				userId:   userId,
+				price:    price,
+				quantity: remainingQty})
+
+			sort.Slice(asks, func(i, j int) bool {
+				return bids[i].price > bids[j].price
+			})
+
+		}
+		fmt.Fprintf(w, "{ filledQuantity: %q }", quantity-remainingQty)
+		return
+	})
+
+	// now we define /depth route
+	http.HandleFunc("/depth",func(w http.ResponseWriter, r *http.Request) {
+		
+	})
+
+
+	http.ListenAndServe(":8080", nil)
 }
 
 // this function updates the user stocks & bank balance
@@ -40,10 +114,6 @@ func UserUpdate(user1Id string, user2Id string, price int, quantity int, users [
 
 // this function fills the bid or sell orders
 func FillOrders(side string, price int, quantity int, userId string) int {
-
-	bids := []Order{}
-	asks := []Order{}
-
 	users := []User{
 		{id: "1",
 			balances: Balances{
