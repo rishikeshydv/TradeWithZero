@@ -20,7 +20,7 @@ interface Order {
   quantity: number;
 }
 
-export const TICKER = "GOOGLE";
+var TICKER = "GOOGLE";
 
 const users: User[] = [{
   id: "1",
