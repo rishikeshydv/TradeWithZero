@@ -166,11 +166,16 @@ let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) 
   end
   remainingQuantity;;
 
+(*Here we will be writing the routes*)
+
 let () =
   Dream.run
+  @@ Dream.logger
   @@ Dream.router [
-    Dream.post "/order" @@ fun request ->
-    Dream.html (Dream.param "word" request);
+    Dream.post "/order" 
+    (fun request ->
+      Dream.html (Dream.params request "word")
+      );
   ]
 
 

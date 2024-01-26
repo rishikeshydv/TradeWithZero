@@ -1,0 +1,13 @@
+This is an easy way of dealing immutability in OCaml. Here, we create a reference to the mutable
+variable.
+
+
+let count = ref 0      //here, count is mutable as it keeps the reference
+
+let count_requests inner_handler request =
+  count := !count + 1;
+  inner_handler request
+
+
+
+  The other approach is using a pattern-matching through recursive functions.

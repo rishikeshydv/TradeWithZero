@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-
 	"github.com/gorilla/mux"
 )
 
