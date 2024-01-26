@@ -88,10 +88,20 @@ let updateAskQuantity(orderList:order list)(index:int)(quantity:int):order list 
     List.rev_append (updatedUser::acc) tl in
   |hd::tail -> updateHelper idx-1 qty (hd::acc) tl
   in updateHelper index quantity [] asks;;
+
+  (* This is the helper function to update remaining quantity*)
+  let _remainingQty (originalQuantity:int transactionQuantity:int) :int = 
+    match originalQuantity with
+    |0 -> failwith "No quantity left"
+    |num when num > 0 ->
+      let updatedQuantity = transactionQuantity - originalQuantity in
+      updatedQuantity
+    |_ -> failwith "Invalid Input"
+  ;; 
+  
 (*Here we will define fillOrders function*)
 let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) ->
   let remainingQuantity = quantity in
-
   if side = "bid" then
     let askLen = List.length asks in
     for i = askLen - 1 to -1 () do
@@ -99,8 +109,11 @@ let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) 
       if bidPrice.price > price then
         ()
       else
-        if bidPrice.quantity>remainingQuantity then
-          _flipBalance(bidPrice.userId,userId,price,quantity)
+        if bidPrice.quantity > remainingQuantity then
+          _flipBalance(bidPrice.userId,userId,bidPrice.price,quantity)
+          updateAskQuantity(asks i quantity)
+        else
+          re
 
 
     done
