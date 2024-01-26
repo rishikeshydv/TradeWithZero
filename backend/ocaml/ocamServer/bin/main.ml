@@ -13,7 +13,6 @@ type order = {
   quantity: int;
 };;
 
-
 (* User Retrieval*)
 
 let users: user list = [
@@ -28,7 +27,6 @@ let bids: order list = [];;
 let asks: order list = [];;
 
 let TICKER = "GOOGLE";;
-
 
 (* Here, we will be writing helper functions to deal with immutability *)
 let _increaseBalance = func increaseBalance (_balance:balances)(_price:int)(_quantity:int) ->
@@ -57,7 +55,7 @@ let _decreaseUser = func decreaseUser (_user:user)(_balance:balances)(_price:int
 ;;
 
 (* defining a balance flipping function that flips stock and money of buyer and seller *)
-let fB = fun flipBalance (userId1: string) (userId2: string) (quantity: number) (price: number) ->
+let _flipBalance = fun flipBalance (userId1: string) (userId2: string) (quantity: number) (price: number) ->
 
   let user1 = List.find(fun u -> u.id=userId1) users in
   let user2 = List.find(fun u -> u.id = userId2.id) users in
@@ -70,15 +68,49 @@ let fB = fun flipBalance (userId1: string) (userId2: string) (quantity: number) 
     _increaseBalance user2 user2.balance price quantity
 ;;
 
+(*Here, we will write a pattern matching to retrieve 
+asks[i] as OCaml doesnt allow direct list access
+
+This is a helper function for FillOrders function
+   *)
+let rec listAccess n:int transactList:List =
+  match transactList with
+  |[] -> failwith "List index out of bounds"
+  |hd::tl -> if n=0 then hd else listAccess n-1 tl ;;
+
+  (* This is the helper function for updating asks[i].quantity *)
+let updateAskQuantity(orderList:order list)(index:int)(quantity:int):order list = 
+  let updateHelper idx,qty acc = function 
+  |[] -> failwith "No Records Found"
+  |hd::tail -> if idx = 0 ->
+    let updatedQty = max 0 (hd.quantity - quantity) in
+    let updatedUser = hd with quantity = updatedQty in (* Here, hd is existing orderList and its quantity attribute is updated with 'updatedQty' *)
+    List.rev_append (updatedUser::acc) tl in
+  |hd::tail -> updateHelper idx-1 qty (hd::acc) tl
+  in updateHelper index quantity [] asks;;
+(*Here we will define fillOrders function*)
+let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) ->
+  let remainingQuantity = quantity in
+
+  if side = "bid" then
+    let askLen = List.length asks in
+    for i = askLen - 1 to -1 () do
+      let bidPrice = listAccess i asks in
+      if bidPrice.price > price then
+        ()
+      else
+        if bidPrice.quantity>remainingQuantity then
+          _flipBalance(bidPrice.userId,userId,price,quantity)
 
 
+    done
+  else
+    1+1=2;;
 
-let fO = fun fillOrders side:string price:number quantity:number userId:string ->
-  let remainingQuantity = quantity;;
-if side = "bid" then
   (* 
 function fillOrders(side: string, price: number, quantity: number, userId: string): number {
-  let remainingQuantity = quantity; *)
+  let remainingQuantity = quantity; 
+  *)
   if (side === "bid") {
       for (let i = asks.length - 1; i >= 0; i--) {
           if (asks[i].price > price) {

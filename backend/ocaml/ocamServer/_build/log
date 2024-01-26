@@ -1,4 +1,4 @@
-# dune fmt
+# dune build
 # OCAMLPARAM: unset
 # Shared cache: disabled
 # Shared cache location: /Users/rishikeshyadav/.cache/dune/db
@@ -16,9 +16,19 @@
 #      map
 #        { "INSIDE_DUNE" :
 #            "/Users/rishikeshyadav/Desktop/TradeWithZero/backend/ocaml/ocamServer/_build/default"
-#        ; "OCAML_COLOR" : "always"
-#        ; "OPAMCOLOR" : "always"
 #        }
 #  ; instrument_with = []
 #  }
-$ /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlc.opt -config > /var/folders/b8/466710_d78q31z8wgrvw2cc00000gn/T/dune_a670f0_output
+$ /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlc.opt -config > /var/folders/b8/466710_d78q31z8wgrvw2cc00000gn/T/dune_4adb87_output
+# Promoting "_build/default/ocamServer.opam" to "ocamServer.opam"
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -a -o lib/ocamServer.cma lib/.ocamServer.objs/byte/ocamServer.cmo)
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlc.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -bin-annot -I test/.test_ocamServer.eobjs/byte -no-alias-deps -opaque -o test/.test_ocamServer.eobjs/byte/dune__exe__Test_ocamServer.cmi -c -intf test/test_ocamServer.mli)
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I bin/.main.eobjs/byte -I bin/.main.eobjs/native -I lib/.ocamServer.objs/byte -I lib/.ocamServer.objs/native -intf-suffix .ml -no-alias-deps -opaque -o bin/.main.eobjs/native/dune__exe__Main.cmx -c -impl bin/main.ml)
+> File "bin/main.ml", line 19, characters 8-11:
+> 19 |   { id: "1";balances: ["GOOGLE": 10,"USD": 50000]};
+>              ^^^
+> Error: Syntax error
+[2]
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -I test/.test_ocamServer.eobjs/byte -I test/.test_ocamServer.eobjs/native -intf-suffix .ml -no-alias-deps -opaque -o test/.test_ocamServer.eobjs/native/dune__exe__Test_ocamServer.cmx -c -impl test/test_ocamServer.ml)
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -shared -linkall -I lib -o lib/ocamServer.cmxs lib/ocamServer.cmxa)
+$ (cd _build/default && /Users/rishikeshyadav/.opam/4.13.1/bin/ocamlopt.opt -w @1..3@5..28@30..39@43@46..47@49..57@61..62@67@69-40 -strict-sequence -strict-formats -short-paths -keep-locs -g -o test/test_ocamServer.exe test/.test_ocamServer.eobjs/native/dune__exe__Test_ocamServer.cmx)
