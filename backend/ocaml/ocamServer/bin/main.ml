@@ -64,8 +64,8 @@ let _flipBalance = fun flipBalance (userId1: string) (userId2: string) (quantity
   let () : unit = if not user1 && not user2 then
       () ;;
 
-    _decreaseUser user1 user1.balance price quantity
-    _increaseBalance user2 user2.balance price quantity
+    _decreaseUser user1 user1.balance price quantity;
+    _increaseBalance user2 user2.balance price quantity;
 ;;
 
 (*Here, we will write a pattern matching to retrieve 
@@ -89,78 +89,82 @@ let updateAskQuantity(orderList:order list)(index:int)(quantity:int):order list 
   |hd::tail -> updateHelper idx-1 qty (hd::acc) tl
   in updateHelper index quantity [] asks;;
 
-  (* This is the helper function to update remaining quantity*)
-  let _remainingQty (originalQuantity:int transactionQuantity:int) :int = 
-    match originalQuantity with
-    |0 -> failwith "No quantity left"
-    |num when num > 0 ->
-      let updatedQuantity = transactionQuantity - originalQuantity in
-      updatedQuantity
-    |_ -> failwith "Invalid Input"
-  ;; 
-  
+    (* This is the helper function for updating bids[i].quantity *)
+let updateBidQuantity(orderList:order list)(index:int)(quantity:int):order list = 
+let updateHelper idx,qty acc = function 
+|[] -> failwith "No Records Found"
+|hd::tail -> if idx = 0 ->
+  let updatedQty = max 0 (hd.quantity - quantity) in
+  let updatedUser = hd with quantity = updatedQty in (* Here, hd is existing orderList and its quantity attribute is updated with 'updatedQty' *)
+  List.rev_append (updatedUser::acc) tl in
+|hd::tail -> updateHelper idx-1 qty (hd::acc) tl
+in updateHelper index quantity [] bids;;
+
+(* This is the helper function to update remaining quantity*)
+let _remainingQty (originalQuantity:int transactionQuantity:int) :int = 
+  match originalQuantity with
+  |0 -> failwith "No quantity left"
+  |num when num > 0 ->
+    let updatedQuantity = transactionQuantity - originalQuantity in
+    updatedQuantity
+  |_ -> failwith "Invalid Input"
+;; 
+
+(* This is a helper pattern matching function to pop the last element of a list *)
+let rec listPop (orderList: order list) :order list =
+  match orderList with
+  |[] -> failwith "Empty List Found"
+  |[_]->[] (* When the list only has one element *)
+  |hd::tl -> hd:: listPop tl
+;;
+
 (*Here we will define fillOrders function*)
-let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) ->
+let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) :int ->
   let remainingQuantity = quantity in
   if side = "bid" then
+    begin
     let askLen = List.length asks in
     for i = askLen - 1 to -1 () do
-      let bidPrice = listAccess i asks in
+      let askPrice = listAccess i asks in
+      if askPrice.price > price then
+        ()
+      else
+        begin
+        if askPrice.quantity > remainingQuantity then
+          begin
+          _flipBalance askPrice.userId userId askPrice.price quantity;
+          updateAskQuantity(asks i quantity);
+          end
+        else
+          begin
+          _remainingQty remainingQuantity askPrice.quantity;
+          _flipBalance askPrice.userId userId price askPrice.quantity;
+          listPop asks;
+          end
+    done
+  end
+  else
+    begin
+    let bidLen = List.length bids in
+    for i = bidLen - 1 to -1 () do
+      let bidPrice = listAccess i bids in
       if bidPrice.price > price then
         ()
       else
+        begin
         if bidPrice.quantity > remainingQuantity then
-          _flipBalance(bidPrice.userId,userId,bidPrice.price,quantity)
-          updateAskQuantity(asks i quantity)
+          begin
+          _flipBalance bidPrice.userId userId bidPrice.price quantity;
+          updateBidQuantity bids i quantity;
+          end
         else
-          re
-
-
-    done
-  else
-    1+1=2;;
-
-  (* 
-function fillOrders(side: string, price: number, quantity: number, userId: string): number {
-  let remainingQuantity = quantity; 
-  *)
-  if (side === "bid") {
-      for (let i = asks.length - 1; i >= 0; i--) {
-          if (asks[i].price > price) {
-              continue;
-            }
-              if (asks[i].quantity > remainingQuantity) {
-                  asks[i].quantity -= remainingQuantity;
-                  flipBalance(asks[i].userId, userId, remainingQuantity, asks[i].price);
-                  return 0;
-                } else {
-  remainingQuantity -= asks[i].quantity;
-  flipBalance(asks[i].userId, userId, asks[i].quantity, asks[i].price);
-  asks.pop();
-}
-}
-} else {
-  for (let i = bids.length - 1; i >= 0; i--) {
-      if (bids[i].price < price) {
-          continue;
-        }
-          if (bids[i].quantity > remainingQuantity) {
-              bids[i].quantity -= remainingQuantity;
-              flipBalance(userId, bids[i].userId, remainingQuantity, price);
-              return 0;
-            } else {
-  remainingQuantity -= bids[i].quantity;
-  flipBalance(userId, bids[i].userId, bids[i].quantity, price);
-  bids.pop();
-}
-}
-}
-
-return remainingQuantity;
-}
-
-
-
+          begin
+          _remainingQty remainingQuantity bidPrice.quantity;
+          _flipBalance bidPrice.userId userId price bidPrice.quantity;
+          end
+    done 
+  end
+  remainingQuantity;;
 
 let () =
   Dream.run
