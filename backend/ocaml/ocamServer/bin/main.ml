@@ -20,6 +20,15 @@ type Request = {
   userId: string;
 };;
 
+type DepthSupport = {
+  _type:string;
+  quantity:int;
+}
+
+type Depth = {
+  ((int) * DepthSupport) list;
+}
+
 (* User Retrieval*)
 
 let users: user list = [
@@ -81,7 +90,7 @@ This is a helper function for FillOrders function
    *)
 let rec listAccess n:int transactList:List =
   match transactList with
-  |[] -> failwith "List index out of bounds"
+  |[] -> -1;
   |hd::tl -> if n=0 then hd else listAccess n-1 tl ;;
 
   (* This is the helper function for updating asks[i].quantity *)
@@ -146,6 +155,24 @@ let listPush (orderList: order list)(userId:string)(price:int)(quantity:int) =
     |a,b when a<=b -> 1;
     |a,b when a>b -> -1;
   ;; 
+(*This is the helper function to append on depth list*)
+  let depthAppend (depthList:Depth list)(_price:int)(_type:string)(_quantity:string) :Depth list =
+    (*Here I will be using 'ref' instead of pattern matching to deal with OCaml Immutability*)
+    let newDepthSupport = {_type = _type ;quantity=_quantity ref} in
+    let newDepthElement =(_price,newDepthSupport) in
+    newDepthElement::depthList
+  ;;
+
+
+  (*This is the recursive function to get the User Balances*)
+let rec getUser (lenList:int) (userId:string) (userList:user list) :list  =
+match userList with
+|[] -> -1;
+|hd::tl -> if lenList=0 and hd.userId = userId then 
+  let res = hd.balances in
+  else 
+  getUser lenList-1 userId userList;
+    res;;
 
 (*Here we will define fillOrders function*)
 let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) :int ->
@@ -232,22 +259,49 @@ let () =
       let response = { filledQuantity = quantity - _remainingQuantity } in
       Dream.json response;
       );;
+
+    Dream.get "/depth"(
+      fun _ ->
+        let depth:Depth = [] in
+        for i = 1 to List.length do ()
+        (*bids*)
+        let bidElement = listAccess i bids in 
+        if bidElement <> -1 then
+          begin
+        let depthElement = listAccess bidElement.price depth in
+        (*Here I will be using 'ref' instead of pattern matching to deal with OCaml Immutability*)
+        depthElement.quantity := !depthElement.quantity + bidElement.quantity;
+          end
+        else
+          depthAppend depth bidElement.price "bid" bidElement.quantity;
+        ()
+        (*asks*)
+        let askElement = listAccess i asks in 
+        if askElement <> -1 then
+          begin
+        let depthElement = listAccess askElement.price depth in
+        (*Here I will be using 'ref' instead of pattern matching to deal with OCaml Immutability*)
+        depthElement.quantity := !depthElement.quantity + askElement.quantity;
+          end
+        else
+          depthAppend depth askElement.price "ask" askElement.quantity;
+        ()
+      done
+      let response = {depth} in
+      Dream.json(response)
+      );;
+
+      Dream.get "/balance/:userId"(
+        fun _ ->
+          let _params = Dream.param request "userId" in
+          let userFound = getUser (List.length users) (_params) (users) in
+          if userFound <> -1 then
+            Dream.json(userFound)
+          else
+            Dream.json({
+              "USD": 0,
+              "GOOGLE": 0
+            })
+
+      )
   ]
-
-  if (side === "bid") {
-    bids.push({
-      userId,
-      price,
-      quantity: remainingQty
-    });
-    bids.sort((a, b) => a.price < b.price ? -1 : 1);
-  } else {
-    asks.push({
-      userId,
-      price,
-      quantity: remainingQty
-    })
-    asks.sort((a, b) => a.price < b.price ? 1 : -1);
-  }
-
-
