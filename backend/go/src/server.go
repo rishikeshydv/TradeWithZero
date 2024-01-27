@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+
 	"github.com/gorilla/mux"
 )
 
@@ -56,7 +57,7 @@ func main() {
 		//set your content-type header so clients know to expect json
 		//w.Header().Set("Content-Type", "application/json")
 
-		var ordReq Request
+		var ordReq *http.Request
 		err := json.NewDecoder(r.Body).Decode(&ordReq)
 		if err != nil {
 			http.Error(w, "Invalid JSON request", http.StatusBadRequest)

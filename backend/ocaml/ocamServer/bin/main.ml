@@ -13,13 +13,19 @@ type order = {
   quantity: int;
 };;
 
+type Request = {
+  side: string;
+  price: number;
+  quantity: number;
+  userId: string;
+};;
+
 (* User Retrieval*)
 
 let users: user list = [
   { id: "1";balances: ["GOOGLE": 10,"USD": 50000]};
   { id: "2";balances: ["GOOGLE": 10,"USD": 50000]};
 ];;
-
 
 (* defining bids and asks *)
 
@@ -118,6 +124,29 @@ let rec listPop (orderList: order list) :order list =
   |hd::tl -> hd:: listPop tl
 ;;
 
+(* This is a helper function to append to the list *)
+let listPush (orderList: order list)(userId:string)(price:int)(quantity:int) = 
+  match orderList with
+  |[] :List.rev_append orderList [{ id = userId; price = price; quantity = quantity }];
+  |hd:tl -> 
+    let newOrder: order = { id = userId; price = price; quantity = quantity } in
+    List.rev_append (newOrder :: orderList);;
+
+
+  (* This is a pattern matching for sorting asks based on price *)
+  let sortAsk (order1:order) (order2:order) =
+    match order1.price, order2.price with
+    |a,b when a>=b -> 1;
+    |a,b when a<b -> -1;
+  ;; 
+
+  (* This is a pattern matching for sorting bids based on price *)
+  let sortBid (order1:order) (order2:order) =
+    match order1.price, order2.price with
+    |a,b when a<=b -> 1;
+    |a,b when a>b -> -1;
+  ;; 
+
 (*Here we will define fillOrders function*)
 let _fillOrders = fun fillOrders (side:string) (price:number) (quantity:number) (userId:string) :int ->
   let remainingQuantity = quantity in
@@ -173,10 +202,52 @@ let () =
   @@ Dream.logger
   @@ Dream.router [
     Dream.post "/order" 
-    (fun request ->
-      Dream.html (Dream.params request "word")
-      );
+    (fun (request:Request) ->
+      let side string = request.side in
+      let price number = request.price in
+      let quantity number = request.quantity in
+      let userId string = request.userId in
+
+      let _remainingQuantity = fillOrders side price quantity userId in
+
+      if _remainingQuantity = 0 then
+        begin
+        let response = { filledQuantity = quantity } in
+        Dream.json response
+        end
+      else
+        Dream.respond (Dream.status `OK) "Order received";
+      ;;
+
+      if side = "bid" then
+        begin
+        listPush(bids;userId,price;quantity);
+        List.sort sortBid bids;
+        end
+      else
+        begin
+          listPush(asks,userId,price,quantity);
+          List.sort sortAsk asks;
+        end
+      let response = { filledQuantity = quantity - _remainingQuantity } in
+      Dream.json response;
+      );;
   ]
 
+  if (side === "bid") {
+    bids.push({
+      userId,
+      price,
+      quantity: remainingQty
+    });
+    bids.sort((a, b) => a.price < b.price ? -1 : 1);
+  } else {
+    asks.push({
+      userId,
+      price,
+      quantity: remainingQty
+    })
+    asks.sort((a, b) => a.price < b.price ? 1 : -1);
+  }
 
 
