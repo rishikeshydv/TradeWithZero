@@ -25,10 +25,7 @@ type DepthSupport = {
   quantity:int;
 }
 
-type Depth = {
-  ((int) * DepthSupport) list;
-}
-
+type Depth = (int * DepthSupport) list
 (* User Retrieval*)
 
 let users: user list = [
@@ -263,7 +260,7 @@ let () =
     Dream.get "/depth"(
       fun _ ->
         let depth:Depth = [] in
-        for i = 1 to List.length do ()
+        for i = 0 to List.length bids -1 do ()
         (*bids*)
         let bidElement = listAccess i bids in 
         if bidElement <> -1 then
@@ -276,6 +273,7 @@ let () =
           depthAppend depth bidElement.price "bid" bidElement.quantity;
         ()
         (*asks*)
+        for i = 0 to List.length asks -1 do ()
         let askElement = listAccess i asks in 
         if askElement <> -1 then
           begin

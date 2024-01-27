@@ -1,9 +1,6 @@
 import express from "express";
-import bodyParser from "body-parser";
 
 export const app = express();
-
-app.use(bodyParser({}));
 
 interface Balances {
   [key: string]: number;
@@ -174,9 +171,3 @@ function fillOrders(side: string, price: number, quantity: number, userId: strin
   return remainingQuantity;
 }
 
-
-
-
-interface Student{
-
-}
